@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/workflow_saas?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Taipei&characterEncoding=utf8
+    username: root
+    password: cb820119
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  application:
+    name: workflow-saas-platform
+
+app:
+  jwt:
+    secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS"
+    issuer: "workflow-saas-platform"
+    access-ttl-minutes: 15
+    refresh-ttl-days: 7
