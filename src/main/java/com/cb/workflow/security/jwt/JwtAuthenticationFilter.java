@@ -10,16 +10,21 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.cb.workflow.rbac.service.RbacService;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final RbacService rbacService;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, RbacService rbacService) {
         this.jwtService = jwtService;
+        this.rbacService = rbacService;
     }
 
     @Override
@@ -42,9 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             AuthPrincipal principal = jwtService.parseAndVerify(token);
 
-            // Authentication（認證物件）
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(principal, null, List.of());
+            UsernamePasswordAuthenticationToken auth = buildAuthentication(principal);
 
             // set to SecurityContext（放進安全上下文）
             SecurityContextHolder.getContext().setAuthentication(auth);
@@ -59,5 +62,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     {"error":"UNAUTHORIZED","message":"%s"}
                     """.formatted(e.getMessage()));
         }
+    }
+
+    private UsernamePasswordAuthenticationToken buildAuthentication(AuthPrincipal principal) {
+
+        List<String> roleCodes = rbacService.getRoleCodes(
+                principal.getTenantId(),
+                principal.getUserId()
+        );
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        for (String code : roleCodes) {
+
+            String finalCode;
+
+            if (code.startsWith("ROLE_")) {
+                finalCode = code;
+            } else {
+                finalCode = "ROLE_" + code;
+            }
+
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(finalCode);
+
+            authorities.add(authority);
+        }
+
+        return new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                authorities
+        );
     }
 }
