@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,15 +18,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final RbacService rbacService;
-
-    public JwtAuthenticationFilter(JwtService jwtService, RbacService rbacService) {
-        this.jwtService = jwtService;
-        this.rbacService = rbacService;
-    }
 
     @Override
     protected void doFilterInternal(
@@ -33,6 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        // ✅ 如果前面已經有 Authentication，就不要覆蓋（避免重複工作）
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
