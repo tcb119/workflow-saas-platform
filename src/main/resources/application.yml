@@ -17,3 +17,7 @@ app:
     issuer: "workflow-saas-platform"
     access-ttl-minutes: 15
     refresh-ttl-days: 7
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
