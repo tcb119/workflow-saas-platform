@@ -29,16 +29,18 @@ public class WorkflowEngineService {
         Long tenantId = p.getTenantId();
 
         WorkflowInstanceEntity inst = instanceMapper.findByTenantAndId(tenantId, req.getInstanceId());
-        if (inst == null) throw new RuntimeException("Instance not found");
+        if (inst == null) {
+            throw new RuntimeException("Instance not found");
+        }
 
         // A 路線：先 owner guard（之後可擴充為 approver inbox）
         guards.checkOwner(p, inst);
 
-        WorkflowTransitionEntity t = transitionMapper.findTransition(tenantId, inst.getState(), req.getAction());
-        guards.checkTransitionExists(t);
+        WorkflowTransitionEntity transition = transitionMapper.findTransition(tenantId, inst.getState(), req.getAction());
+        guards.checkTransitionExists(transition);
 
         int updated = instanceMapper.updateStateWithOptimisticLock(
-                tenantId, inst.getId(), inst.getVersion(), t.getToState()
+                tenantId, inst.getId(), inst.getVersion(), transition.getToState()
         );
         if (updated == 0) {
             // optimistic locking conflict（樂觀鎖衝突）
@@ -52,7 +54,7 @@ public class WorkflowEngineService {
                 .actorUserId(p.getUserId())
                 .action(req.getAction())
                 .fromState(inst.getState())
-                .toState(t.getToState())
+                .toState(transition.getToState())
                 .comment(req.getComment())
                 .requestId(req.getRequestId())
                 .build();
@@ -61,7 +63,7 @@ public class WorkflowEngineService {
         return TransitionResponse.builder()
                 .instanceId(inst.getId())
                 .fromState(inst.getState())
-                .toState(t.getToState())
+                .toState(transition.getToState())
                 .version(inst.getVersion() + 1)
                 .build();
     }
