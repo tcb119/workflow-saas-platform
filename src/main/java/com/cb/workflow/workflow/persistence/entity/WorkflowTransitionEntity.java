@@ -12,4 +12,6 @@ public class WorkflowTransitionEntity {
     private String toState;
 
     private String requiredRole; // RBAC（角色授權）可選：例如 "ADMIN"
+    private Long nextAssigneeUserId;   // optional
+    private String nextAssigneeRoleCode; // optional
 }

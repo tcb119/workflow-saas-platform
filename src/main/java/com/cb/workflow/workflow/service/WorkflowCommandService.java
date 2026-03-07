@@ -9,37 +9,53 @@ import com.cb.workflow.workflow.persistence.entity.WorkflowTransitionEntity;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowApprovalLogMapper;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowInstanceMapper;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowTransitionMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
-public class WorkflowEngineService {
+public class WorkflowCommandService {
 
     private final WorkflowInstanceMapper instanceMapper;
     private final WorkflowTransitionMapper transitionMapper;
     private final WorkflowApprovalLogMapper approvalLogMapper;
     private final WorkflowGuards guards;
 
+    public WorkflowCommandService(
+            WorkflowInstanceMapper instanceMapper,
+            WorkflowTransitionMapper transitionMapper,
+            WorkflowApprovalLogMapper approvalLogMapper,
+            WorkflowGuards guards
+    ) {
+        this.instanceMapper = instanceMapper;
+        this.transitionMapper = transitionMapper;
+        this.approvalLogMapper = approvalLogMapper;
+        this.guards = guards;
+    }
 
-    // transition（狀態遷移）主流程：load → guard → find transition → optimistic update → log
     @Transactional
-    public TransitionResponse transition(AuthPrincipal p, TransitionRequest req) {
-        Long tenantId = p.getTenantId();
+    public TransitionResponse transition(AuthPrincipal principal,
+                                         Authentication authentication,
+                                         TransitionRequest req) {
 
-        WorkflowInstanceEntity inst = instanceMapper.findByTenantAndId(tenantId, req.getInstanceId());
-        if (inst == null) {
-            throw new RuntimeException("Instance not found");
-        }
+        Long tenantId = principal.getTenantId();
 
-        // A 路線：先 owner guard（之後可擴充為 approver inbox）
-        guards.checkOwnerForSubmit(p, inst, req.getAction());
+        WorkflowInstanceEntity inst = instanceMapper.findByTenantAndId(
+                tenantId,
+                req.getInstanceId()
+        );
+        guards.checkInstanceExists(inst);
 
-        WorkflowTransitionEntity transition = transitionMapper.findTransition(tenantId, inst.getState(), req.getAction());
+        guards.checkOwnerForSubmit(principal, inst, req.getAction());
+
+        WorkflowTransitionEntity transition = transitionMapper.findTransition(
+                tenantId,
+                inst.getState(),
+                req.getAction()
+        );
         guards.checkTransitionExists(transition);
+
+        guards.checkRole(authentication, transition.getRequiredRole());
 
         int updated = instanceMapper.updateStateWithOptimisticLock(
                 tenantId,
@@ -52,31 +68,28 @@ public class WorkflowEngineService {
         );
 
         if (updated == 0) {
-            // optimistic locking conflict（樂觀鎖衝突）或 duplicate request（重複請求）
-            throw new RuntimeException("Concurrent modification or duplicate request");
+            throw new RuntimeException("Transition conflict or duplicate request");
         }
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        // approval log（簽核紀錄 / audit evidence）
         WorkflowApprovalLogEntity log = WorkflowApprovalLogEntity.builder()
                 .tenantId(tenantId)
                 .instanceId(inst.getId())
-                .actorUserId(p.getUserId())
-                .actorUserName(p.getUsername())   // 新增
+                .actorUserId(principal.getUserId())
+                .actorUserName(String.valueOf(principal.getUserId()))
                 .actorRole(
                         authentication.getAuthorities()
-                                .iterator()
-                                .next()
-                                .getAuthority()
-                )                                 // 新增
+                                .stream()
+                                .findFirst()
+                                .map(a -> a.getAuthority())
+                                .orElse("ROLE_UNKNOWN")
+                )
                 .action(req.getAction())
                 .fromState(inst.getState())
                 .toState(transition.getToState())
                 .comment(req.getComment())
                 .requestId(req.getRequestId())
                 .build();
+
         approvalLogMapper.insert(log);
 
         return TransitionResponse.builder()
@@ -84,6 +97,8 @@ public class WorkflowEngineService {
                 .fromState(inst.getState())
                 .toState(transition.getToState())
                 .version(inst.getVersion() + 1)
+                .assigneeUserId(transition.getNextAssigneeUserId())
+                .assigneeRoleCode(transition.getNextAssigneeRoleCode())
                 .build();
     }
 }

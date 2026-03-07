@@ -3,24 +3,25 @@ package com.cb.workflow.workflow.controller;
 import com.cb.workflow.security.principal.AuthPrincipal;
 import com.cb.workflow.workflow.dto.TransitionRequest;
 import com.cb.workflow.workflow.dto.TransitionResponse;
-import com.cb.workflow.workflow.service.WorkflowEngineService;
+import com.cb.workflow.workflow.service.WorkflowCommandService;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/workflows")
+@RequestMapping("/api/workflow")
 public class WorkflowController {
 
-    private final WorkflowEngineService engineService;
+    private final WorkflowCommandService workflowCommandService;
 
-    public WorkflowController(WorkflowEngineService engineService) {
-        this.engineService = engineService;
+    public WorkflowController(WorkflowCommandService workflowCommandService) {
+        this.workflowCommandService = workflowCommandService;
     }
 
-    // POST /api/workflows/transition
     @PostMapping("/transition")
-    public TransitionResponse transition(@AuthenticationPrincipal AuthPrincipal p,
+    public TransitionResponse transition(@AuthenticationPrincipal AuthPrincipal principal,
+                                         Authentication authentication,
                                          @RequestBody TransitionRequest req) {
-        return engineService.transition(p, req);
+        return workflowCommandService.transition(principal, authentication, req);
     }
 }

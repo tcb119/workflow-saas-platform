@@ -10,8 +10,14 @@ public class WorkflowInstanceEntity {
     private Long tenantId;
     private Long ownerUserId;
 
+    private Long assigneeUserId;
+    private String assigneeRoleCode;
+
     private String state;
-    private Long version;              // optimistic locking（樂觀鎖）版本號
+    private Long version;
+    private String title;
+
+    private String lastTransitionRequestId;
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

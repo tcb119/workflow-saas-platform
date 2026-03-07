@@ -9,21 +9,44 @@ import java.util.List;
 public interface WorkflowApprovalLogMapper {
 
     @Insert("""
-        INSERT INTO workflow_approvals(
-           tenant_id, instance_id, actor_user_id,
-           action, from_state, to_state,
-           comment, request_id
-         ) VALUES (
-           #{tenantId}, #{instanceId}, #{actorUserId},
-           #{action}, #{fromState}, #{toState},
-           #{comment}, #{requestId}
-         )
-    """)
+    INSERT INTO workflow_approvals(
+        tenant_id,
+        instance_id,
+        actor_user_id,
+        actor_user_name,
+        actor_role,
+        action,
+        from_state,
+        to_state,
+        comment,
+        request_id
+    ) VALUES (
+        #{tenantId},
+        #{instanceId},
+        #{actorUserId},
+        #{actorUserName},
+        #{actorRole},
+        #{action},
+        #{fromState},
+        #{toState},
+        #{comment},
+        #{requestId}
+    )
+""")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(WorkflowApprovalLogEntity e);
 
     @Select("""
-        SELECT id, tenant_id, instance_id, actor_user_id, action, from_state, to_state, comment, created_at
+        SELECT 
+            id, 
+            tenant_id, 
+            instance_id, 
+            actor_user_id, 
+            action, 
+            from_state, 
+            to_state, 
+            comment, 
+            created_at
         FROM workflow_approval_logs
         WHERE tenant_id = #{tenantId} AND instance_id = #{instanceId}
         ORDER BY id DESC

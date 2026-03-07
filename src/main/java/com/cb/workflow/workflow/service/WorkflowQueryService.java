@@ -3,7 +3,6 @@ package com.cb.workflow.workflow.service;
 import com.cb.workflow.security.principal.AuthPrincipal;
 import com.cb.workflow.workflow.dto.InboxItem;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowInboxMapper;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
