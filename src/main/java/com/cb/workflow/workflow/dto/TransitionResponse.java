@@ -10,4 +10,6 @@ public class TransitionResponse {
     private String fromState;
     private String toState;
     private Long version;      // optimistic locking（樂觀鎖）用
+    private Long assigneeUserId;
+    private String assigneeRoleCode;
 }

@@ -14,6 +14,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -63,12 +64,23 @@ public class JwtService {
             Long userId = Long.valueOf(c.getSubject());
             Long tenantId = toLong(c.get("tenantId"));
             String email = c.get("email", String.class);
+            String username = c.get("username", String.class);
 
             if (tenantId == null || email == null) {
                 throw new JwtAuthException("Missing required claims");
             }
 
-            return new AuthPrincipal(tenantId, userId, email);
+            if (username == null) {
+                username = email;
+            }
+
+            return new AuthPrincipal(
+                    tenantId,
+                    userId,
+                    email,
+                    username,
+                    List.of()
+            );
 
         } catch (SignatureException e) {
             throw new JwtAuthException("Invalid signature", e);
