@@ -40,23 +40,33 @@ public class WorkflowCommandService {
 
         Long tenantId = principal.getTenantId();
 
+        // 1) load instance
         WorkflowInstanceEntity inst = instanceMapper.findByTenantAndId(
                 tenantId,
                 req.getInstanceId()
         );
-        guards.checkInstanceExists(inst);
 
-        guards.checkOwnerForSubmit(principal, inst, req.getAction());
+        // 2) load transition rule
+        WorkflowTransitionEntity transition = null;
+        if (inst != null) {
+            transition = transitionMapper.findTransition(
+                    tenantId,
+                    inst.getState(),
+                    req.getAction()
+            );
+        }
 
-        WorkflowTransitionEntity transition = transitionMapper.findTransition(
-                tenantId,
-                inst.getState(),
-                req.getAction()
+        // 3) validate guard pipeline
+        guards.validateTransition(
+                principal,
+                authentication,
+                inst,
+                transition,
+                req.getAction(),
+                req.getRequestId()
         );
-        guards.checkTransitionExists(transition);
 
-        guards.checkRole(authentication, transition.getRequiredRole());
-
+        // 4) optimistic locking + duplicate protection
         int updated = instanceMapper.updateStateWithOptimisticLock(
                 tenantId,
                 inst.getId(),
@@ -71,6 +81,7 @@ public class WorkflowCommandService {
             throw new RuntimeException("Transition conflict or duplicate request");
         }
 
+        // 5) write approval log
         WorkflowApprovalLogEntity log = WorkflowApprovalLogEntity.builder()
                 .tenantId(tenantId)
                 .instanceId(inst.getId())

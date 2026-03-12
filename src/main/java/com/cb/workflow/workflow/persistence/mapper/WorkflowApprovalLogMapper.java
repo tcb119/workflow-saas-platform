@@ -1,5 +1,6 @@
 package com.cb.workflow.workflow.persistence.mapper;
 
+import com.cb.workflow.workflow.dto.ApprovalLogItem;
 import com.cb.workflow.workflow.persistence.entity.WorkflowApprovalLogEntity;
 import org.apache.ibatis.annotations.*;
 
@@ -37,22 +38,23 @@ public interface WorkflowApprovalLogMapper {
     int insert(WorkflowApprovalLogEntity e);
 
     @Select("""
-        SELECT 
-            id, 
-            tenant_id, 
-            instance_id, 
-            actor_user_id, 
-            action, 
-            from_state, 
-            to_state, 
-            comment, 
-            created_at
+        SELECT
+            id,
+            instance_id     AS instanceId,
+            actor_user_id   AS actorUserId,
+            actor_user_name AS actorUserName,
+            actor_role      AS actorRole,
+            action,
+            from_state      AS fromState,
+            to_state        AS toState,
+            comment,
+            request_id      AS requestId,
+            created_at      AS createdAt
         FROM workflow_approval_logs
-        WHERE tenant_id = #{tenantId} AND instance_id = #{instanceId}
+        WHERE tenant_id = #{tenantId}
+          AND instance_id = #{instanceId}
         ORDER BY id DESC
-        LIMIT #{limit}
     """)
-    List<WorkflowApprovalLogEntity> listByInstance(@Param("tenantId") Long tenantId,
-                                                   @Param("instanceId") Long instanceId,
-                                                   @Param("limit") int limit);
+    List<ApprovalLogItem> findHistory(@Param("tenantId") Long tenantId,
+                                      @Param("instanceId") Long instanceId);
 }

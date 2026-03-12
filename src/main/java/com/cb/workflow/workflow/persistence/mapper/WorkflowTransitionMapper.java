@@ -15,7 +15,8 @@ public interface WorkflowTransitionMapper {
             to_state                   AS toState,
             required_role              AS requiredRole,
             next_assignee_user_id      AS nextAssigneeUserId,
-            next_assignee_role_code    AS nextAssigneeRoleCode
+            next_assignee_role_code    AS nextAssigneeRoleCode,
+            is_active                  AS isActive
         FROM workflow_transitions
         WHERE tenant_id = #{tenantId}
           AND from_state = #{fromState}
