@@ -13,12 +13,12 @@ public interface WorkflowInboxMapper {
     @Select("""
         <script>
         SELECT
-            id                AS instanceId,
-            state             AS state,
-            owner_user_id     AS ownerId,
-            assignee_user_id  AS assigneeUserId,
+            id                 AS instanceId,
+            state              AS state,
+            owner_user_id      AS ownerId,
+            assignee_user_id   AS assigneeUserId,
             assignee_role_code AS assigneeRoleCode,
-            updated_at        AS updatedAt
+            updated_at         AS updatedAt
         FROM workflow_instances
         WHERE tenant_id = #{tenantId}
           <if test="state != null and state != ''">

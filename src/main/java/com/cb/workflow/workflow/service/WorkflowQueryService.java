@@ -1,20 +1,24 @@
 package com.cb.workflow.workflow.service;
 
 import com.cb.workflow.security.principal.AuthPrincipal;
+import com.cb.workflow.workflow.dto.ApprovalLogItem;
 import com.cb.workflow.workflow.dto.InboxItem;
+import com.cb.workflow.workflow.persistence.mapper.WorkflowApprovalLogMapper;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowInboxMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
 public class WorkflowQueryService {
 
     private final WorkflowInboxMapper inboxMapper;
+    private final WorkflowApprovalLogMapper approvalLogMapper;
 
-    public WorkflowQueryService(WorkflowInboxMapper inboxMapper) {
+    public WorkflowQueryService(WorkflowInboxMapper inboxMapper,
+                                WorkflowApprovalLogMapper approvalLogMapper) {
         this.inboxMapper = inboxMapper;
+        this.approvalLogMapper = approvalLogMapper;
     }
 
     public List<InboxItem> myInbox(String state, int page, int size) {
@@ -46,5 +50,13 @@ public class WorkflowQueryService {
                 safeSize,
                 offset
         );
+    }
+
+    public List<ApprovalLogItem> history(Long instanceId) {
+        AuthPrincipal principal = (AuthPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        return approvalLogMapper.findHistory(principal.getTenantId(), instanceId);
     }
 }
