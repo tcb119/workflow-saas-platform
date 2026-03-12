@@ -21,7 +21,6 @@ public interface WorkflowTransitionMapper {
         WHERE tenant_id = #{tenantId}
           AND from_state = #{fromState}
           AND action = #{action}
-          AND is_active = 1
         LIMIT 1
     """)
     WorkflowTransitionEntity findTransition(@Param("tenantId") Long tenantId,
