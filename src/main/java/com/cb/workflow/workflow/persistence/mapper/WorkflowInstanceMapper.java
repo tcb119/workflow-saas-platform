@@ -1,5 +1,6 @@
 package com.cb.workflow.workflow.persistence.mapper;
 
+import com.cb.workflow.workflow.dto.WorkflowDetailResponse;
 import com.cb.workflow.workflow.persistence.entity.WorkflowInstanceEntity;
 import org.apache.ibatis.annotations.*;
 
@@ -53,4 +54,20 @@ public interface WorkflowInstanceMapper {
             @Param("newAssigneeRoleCode") String newAssigneeRoleCode,
             @Param("requestId") String requestId
     );
+
+    @Select("""
+        SELECT
+            id                  AS instanceId,
+            state               AS state,
+            owner_user_id       AS ownerId,
+            assignee_user_id    AS assigneeUserId,
+            assignee_role_code  AS assigneeRoleCode,
+            updated_at          AS updatedAt
+        FROM workflow_instances
+        WHERE tenant_id = #{tenantId}
+          AND id = #{instanceId}
+        LIMIT 1
+    """)
+        WorkflowDetailResponse findDetail(@Param("tenantId") Long tenantId,
+                                          @Param("instanceId") Long instanceId);
 }

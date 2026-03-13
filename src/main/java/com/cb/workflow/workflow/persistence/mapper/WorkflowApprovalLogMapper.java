@@ -50,7 +50,7 @@ public interface WorkflowApprovalLogMapper {
             comment,
             request_id      AS requestId,
             created_at      AS createdAt
-        FROM workflow_approval_logs
+        FROM workflow_approvals
         WHERE tenant_id = #{tenantId}
           AND instance_id = #{instanceId}
         ORDER BY id DESC
