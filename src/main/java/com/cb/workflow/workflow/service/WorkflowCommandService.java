@@ -3,6 +3,8 @@ package com.cb.workflow.workflow.service;
 import com.cb.workflow.security.principal.AuthPrincipal;
 import com.cb.workflow.workflow.dto.TransitionRequest;
 import com.cb.workflow.workflow.dto.TransitionResponse;
+import com.cb.workflow.workflow.dto.CreateWorkflowRequest;
+import com.cb.workflow.workflow.dto.CreateWorkflowResponse;
 import com.cb.workflow.workflow.persistence.entity.WorkflowApprovalLogEntity;
 import com.cb.workflow.workflow.persistence.entity.WorkflowInstanceEntity;
 import com.cb.workflow.workflow.persistence.entity.WorkflowTransitionEntity;
@@ -34,6 +36,30 @@ public class WorkflowCommandService {
     }
 
     @Transactional
+    public CreateWorkflowResponse create(AuthPrincipal principal,
+                                         CreateWorkflowRequest req) {
+
+        WorkflowInstanceEntity entity = new WorkflowInstanceEntity();
+        entity.setTenantId(principal.getTenantId());
+        entity.setOwnerUserId(principal.getUserId());
+        entity.setAssigneeUserId(null);
+        entity.setAssigneeRoleCode("USER");
+        entity.setState("DRAFT");
+        entity.setVersion(0L);
+        entity.setLastTransitionRequestId(null);
+        entity.setTitle(req.getTitle());
+
+        instanceMapper.insert(entity);
+
+        return CreateWorkflowResponse.builder()
+                .instanceId(entity.getId())
+                .state(entity.getState())
+                .ownerId(entity.getOwnerUserId())
+                .title(entity.getTitle())
+                .build();
+    }
+
+    @Transactional
     public TransitionResponse transition(AuthPrincipal principal,
                                          Authentication authentication,
                                          TransitionRequest req) {
@@ -54,6 +80,13 @@ public class WorkflowCommandService {
                     inst.getState(),
                     req.getAction()
             );
+            System.out.println("==== TRANSITION DEBUG ====");
+            System.out.println("inst.state = " + inst.getState());
+            System.out.println("req.action = " + req.getAction());
+            System.out.println("transition = " + transition);
+            System.out.println("requiredRole = " + (transition != null ? transition.getRequiredRole() : null));
+            System.out.println("authorities = " + authentication.getAuthorities());
+            System.out.println("==========================");
         }
 
         // 3) validate guard pipeline
