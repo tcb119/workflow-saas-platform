@@ -15,9 +15,9 @@ public class WorkflowInstanceEntity {
 
     private String state;
     private Long version;
-    private String title;
 
     private String lastTransitionRequestId;
+    private String title;
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

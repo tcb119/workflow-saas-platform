@@ -19,8 +19,12 @@ public class WorkflowGuards {
         checkInstanceExists(inst);
         checkTransitionExists(transition);
         checkOwnerForSubmit(principal, inst, action);
-        checkRole(authentication, transition.getRequiredRole());
         checkDuplicateRequest(inst, requestId);
+
+        // SUBMIT 不看 role，只看 owner
+        if (!"SUBMIT".equalsIgnoreCase(action)) {
+            checkRole(authentication, transition.getRequiredRole());
+        }
     }
 
     // tenant isolation（租戶隔離）：tenantId 一定要一致（通常 DB query 已帶 tenantId 就夠）
@@ -44,7 +48,7 @@ public class WorkflowGuards {
 
         if ("SUBMIT".equalsIgnoreCase(action)) {
             if (!p.getUserId().equals(inst.getOwnerUserId())) {
-                throw new RuntimeException("Not owner");
+                throw new RuntimeException("Only owner can submit");
             }
         }
     }

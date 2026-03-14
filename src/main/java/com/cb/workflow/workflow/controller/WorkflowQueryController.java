@@ -28,6 +28,12 @@ public class WorkflowQueryController {
         return workflowQueryService.myInbox(state, page, size);
     }
 
+    @GetMapping("/my-requests")
+    public List<InboxItem> myRequests(@RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "20") int size) {
+        return workflowQueryService.myRequests(page, size);
+    }
+
     @GetMapping("/history")
     public List<ApprovalLogItem> history(@RequestParam Long instanceId) {
         return workflowQueryService.history(instanceId);
