@@ -79,4 +79,61 @@ public interface WorkflowTransitionMapper {
     int updateActive(@Param("tenantId") Long tenantId,
                      @Param("id") Long id,
                      @Param("isActive") Boolean isActive);
+
+    @Select("""
+        SELECT COUNT(1)
+        FROM workflow_transitions
+        WHERE tenant_id = #{tenantId}
+          AND from_state = #{fromState}
+          AND action = #{action}
+    """)
+        boolean existsByTenantAndFromStateAndAction(@Param("tenantId") Long tenantId,
+                                                    @Param("fromState") String fromState,
+                                                    @Param("action") String action);
+
+    @Select("""
+        SELECT COUNT(1)
+        FROM workflow_transitions
+        WHERE tenant_id = #{tenantId}
+          AND from_state = #{fromState}
+          AND action = #{action}
+          AND id <> #{id}
+    """)
+        boolean existsByTenantAndFromStateAndActionExcludingId(@Param("tenantId") Long tenantId,
+                                                               @Param("fromState") String fromState,
+                                                               @Param("action") String action,
+                                                               @Param("id") Long id);
+
+    @Select("""
+        SELECT
+            id                      AS id,
+            tenant_id               AS tenantId,
+            from_state              AS fromState,
+            action                  AS action,
+            to_state                AS toState,
+            required_role           AS requiredRole,
+            next_assignee_user_id   AS nextAssigneeUserId,
+            next_assignee_role_code AS nextAssigneeRoleCode,
+            is_active               AS isActive
+        FROM workflow_transitions
+        WHERE tenant_id = #{tenantId}
+          AND id = #{id}
+        LIMIT 1
+    """)
+        WorkflowTransitionEntity findById(@Param("tenantId") Long tenantId,
+                                          @Param("id") Long id);
+
+    @Update("""
+        UPDATE workflow_transitions
+        SET from_state = #{fromState},
+            action = #{action},
+            to_state = #{toState},
+            required_role = #{requiredRole},
+            next_assignee_user_id = #{nextAssigneeUserId},
+            next_assignee_role_code = #{nextAssigneeRoleCode},
+            is_active = #{isActive}
+        WHERE tenant_id = #{tenantId}
+          AND id = #{id}
+""")
+    int updateRule(WorkflowTransitionEntity entity);
 }

@@ -3,8 +3,10 @@ package com.cb.workflow.workflow.controller;
 import com.cb.workflow.workflow.dto.AdminTransitionRuleItem;
 import com.cb.workflow.workflow.dto.CreateTransitionRuleRequest;
 import com.cb.workflow.workflow.dto.CreateTransitionRuleResponse;
+import com.cb.workflow.workflow.dto.UpdateTransitionRuleRequest;
 import com.cb.workflow.workflow.service.AdminWorkflowConfigService;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -24,8 +26,14 @@ public class AdminWorkflowConfigController {
     }
 
     @PostMapping("/transitions")
-    public CreateTransitionRuleResponse createRule(@RequestBody CreateTransitionRuleRequest req) {
+    public CreateTransitionRuleResponse createRule(@RequestBody @Valid CreateTransitionRuleRequest req) {
         return adminWorkflowConfigService.createRule(req);
+    }
+
+    @PutMapping("/transitions/{id}")
+    public CreateTransitionRuleResponse updateRule(@PathVariable Long id,
+                                                   @RequestBody @Valid UpdateTransitionRuleRequest req) {
+        return adminWorkflowConfigService.updateRule(id, req);
     }
 
     @PatchMapping("/transitions/{id}/active")

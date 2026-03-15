@@ -4,8 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-
-public class CreateTransitionRuleRequest {
+public class UpdateTransitionRuleRequest {
 
     @NotBlank
     private String fromState;
@@ -19,5 +18,5 @@ public class CreateTransitionRuleRequest {
     private String requiredRole;
     private Long nextAssigneeUserId;
     private String nextAssigneeRoleCode;
-    private Boolean IsActive;
+    private Boolean isActive;
 }
