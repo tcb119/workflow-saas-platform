@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,17 +15,15 @@ import com.cb.workflow.rbac.service.RbacService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final RbacService rbacService;
-
-    public JwtAuthenticationFilter(JwtService jwtService, RbacService rbacService) {
-        this.jwtService = jwtService;
-        this.rbacService = rbacService;
-    }
 
     @Override
     protected void doFilterInternal(
@@ -32,6 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        // ✅ 如果前面已經有 Authentication，就不要覆蓋（避免重複工作）
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
@@ -46,18 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             AuthPrincipal principal = jwtService.parseAndVerify(token);
 
-            // RBAC lookup per request（每次請求查角色）
-            var roleCodes = rbacService.getRoleCodes(principal.getTenantId(), principal.getUserId());
-
-            var authorities = roleCodes.stream()
-                    .map(code -> code.startsWith("ROLE_") ? code : "ROLE_" + code)
-                    .map(SimpleGrantedAuthority::new)
-                    .toList();
-
-            // Authentication（認證物件）
-            UsernamePasswordAuthenticationToken auth =
-//                    new UsernamePasswordAuthenticationToken(principal, null, List.of());
-                    new UsernamePasswordAuthenticationToken(principal, null, authorities);
+            UsernamePasswordAuthenticationToken auth = buildAuthentication(principal);
 
             // set to SecurityContext（放進安全上下文）
             SecurityContextHolder.getContext().setAuthentication(auth);
@@ -72,5 +66,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     {"error":"UNAUTHORIZED","message":"%s"}
                     """.formatted(e.getMessage()));
         }
+    }
+
+    private UsernamePasswordAuthenticationToken buildAuthentication(AuthPrincipal principal) {
+
+        List<String> roleCodes = rbacService.getRoleCodes(
+                principal.getTenantId(),
+                principal.getUserId()
+        );
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        for (String code : roleCodes) {
+
+            String finalCode;
+
+            if (code.startsWith("ROLE_")) {
+                finalCode = code;
+            } else {
+                finalCode = "ROLE_" + code;
+            }
+
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(finalCode);
+
+            authorities.add(authority);
+        }
+
+        return new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                authorities
+        );
     }
 }
