@@ -7,6 +7,7 @@ import com.cb.workflow.workflow.dto.CreateTransitionRuleResponse;
 import com.cb.workflow.workflow.dto.UpdateTransitionRuleRequest;
 import com.cb.workflow.workflow.persistence.entity.WorkflowTransitionEntity;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowTransitionMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AdminWorkflowConfigService {
 
     private final WorkflowTransitionMapper transitionMapper;
-
-    public AdminWorkflowConfigService(WorkflowTransitionMapper transitionMapper) {
-        this.transitionMapper = transitionMapper;
-    }
 
     public List<AdminTransitionRuleItem> listRules() {
         AuthPrincipal principal = (AuthPrincipal) SecurityContextHolder.getContext()
@@ -63,15 +61,16 @@ public class AdminWorkflowConfigService {
             throw new RuntimeException("Duplicate transition rule: fromState + action already exists");
         }
 
-        WorkflowTransitionEntity entity = new WorkflowTransitionEntity();
-        entity.setTenantId(principal.getTenantId());
-        entity.setFromState(fromState);
-        entity.setAction(action);
-        entity.setToState(toState);
-        entity.setRequiredRole(requiredRole);
-        entity.setNextAssigneeUserId(req.getNextAssigneeUserId());
-        entity.setNextAssigneeRoleCode(nextAssigneeRoleCode);
-        entity.setIsActive(isActive);
+        WorkflowTransitionEntity entity = WorkflowTransitionEntity.builder()
+                .tenantId(principal.getTenantId())
+                .fromState(fromState)
+                .action(action)
+                .toState(toState)
+                .requiredRole(requiredRole)
+                .nextAssigneeUserId(req.getNextAssigneeUserId())
+                .nextAssigneeRoleCode(nextAssigneeRoleCode)
+                .isActive(isActive)
+                .build();
 
         transitionMapper.insertRule(entity);
 

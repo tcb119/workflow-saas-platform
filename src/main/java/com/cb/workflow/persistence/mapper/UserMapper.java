@@ -1,6 +1,7 @@
 package com.cb.workflow.persistence.mapper;
 
 import com.cb.workflow.persistence.entity.UserEntity;
+import com.cb.workflow.auth.persistence.mapper.RefreshTokenMapper;
 import org.apache.ibatis.annotations.*;
 
 @Mapper

@@ -1,4 +1,4 @@
-package com.cb.workflow.persistence.entity;
+package com.cb.workflow.auth.persistence.entity;
 
 import lombok.Data;
 

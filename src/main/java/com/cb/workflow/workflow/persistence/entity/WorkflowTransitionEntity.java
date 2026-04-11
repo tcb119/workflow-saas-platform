@@ -1,8 +1,10 @@
 package com.cb.workflow.workflow.persistence.entity;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class WorkflowTransitionEntity {
     private Long id;
     private Long tenantId;
