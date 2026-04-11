@@ -1,4 +1,4 @@
-package com.cb.workflow.persistence.mapper;
+package com.cb.workflow.auth.persistence.mapper;
 
 import org.apache.ibatis.annotations.*;
 

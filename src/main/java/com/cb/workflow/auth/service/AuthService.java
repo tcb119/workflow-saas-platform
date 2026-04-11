@@ -3,7 +3,7 @@ package com.cb.workflow.auth.service;
 import com.cb.workflow.auth.dto.LoginRequest;
 import com.cb.workflow.auth.dto.TokenResponse;
 import com.cb.workflow.persistence.entity.UserEntity;
-import com.cb.workflow.persistence.mapper.RefreshTokenMapper;
+import com.cb.workflow.auth.persistence.mapper.RefreshTokenMapper;
 import com.cb.workflow.persistence.mapper.UserMapper;
 import com.cb.workflow.security.jwt.JwtService;
 import com.cb.workflow.security.jwt.RefreshTokenSupport;

@@ -7,29 +7,22 @@ import com.cb.workflow.workflow.dto.WorkflowDetailResponse;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowApprovalLogMapper;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowInboxMapper;
 import com.cb.workflow.workflow.persistence.mapper.WorkflowInstanceMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class WorkflowQueryService {
 
     private final WorkflowInboxMapper inboxMapper;
     private final WorkflowApprovalLogMapper approvalLogMapper;
     private final WorkflowInstanceMapper instanceMapper;
 
-    public WorkflowQueryService(WorkflowInboxMapper inboxMapper,
-                                WorkflowApprovalLogMapper approvalLogMapper,
-                                WorkflowInstanceMapper instanceMapper) {
-        this.inboxMapper = inboxMapper;
-        this.approvalLogMapper = approvalLogMapper;
-        this.instanceMapper = instanceMapper;
-    }
-
     public List<InboxItem> myRequests(int page, int size) {
-        AuthPrincipal principal = (AuthPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+
+        AuthPrincipal principal = currentUser();
 
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), 100);
@@ -44,18 +37,15 @@ public class WorkflowQueryService {
     }
 
     public WorkflowDetailResponse detail(Long instanceId) {
-        AuthPrincipal principal = (AuthPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+
+        AuthPrincipal principal = currentUser();
 
         return instanceMapper.findDetail(principal.getTenantId(), instanceId);
     }
 
     public List<InboxItem> myInbox(String state, int page, int size) {
 
-        AuthPrincipal principal = (AuthPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+        AuthPrincipal principal = currentUser();
 
         Long tenantId = principal.getTenantId();
         Long userId = principal.getUserId();
@@ -83,10 +73,15 @@ public class WorkflowQueryService {
     }
 
     public List<ApprovalLogItem> history(Long instanceId) {
-        AuthPrincipal principal = (AuthPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+
+        AuthPrincipal principal = currentUser();
 
         return approvalLogMapper.findHistory(principal.getTenantId(), instanceId);
+    }
+
+    private AuthPrincipal currentUser() {
+        return (AuthPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
     }
 }

@@ -84,7 +84,7 @@ Workflow SaaS Platform 是一個以後端為核心設計的工作流程系統（
 
 ## Workflow Instance Management
 
-    使用者可以建立 workflow instance 並追蹤流程狀態。
+使用者可以建立 workflow instance 並追蹤流程狀態。
 
         主要功能包含：
         
@@ -105,12 +105,12 @@ Workflow SaaS Platform 是一個以後端為核心設計的工作流程系統（
 
 ## Workflow Transition Engine
 
-    系統核心為 **Workflow Transition Engine**，負責控制流程狀態如何轉移。
+系統核心為 **Workflow Transition Engine**，負責控制流程狀態如何轉移。
 
         例如：
             DRAFT → SUBMIT → PENDING → APPROVED
         
-        每一個 transition rule 由以下欄位定義：
+每一個 transition rule 由以下欄位定義：
         
         - fromState
           - action
@@ -125,13 +125,13 @@ Workflow SaaS Platform 是一個以後端為核心設計的工作流程系統（
         requiredRole: USER
         nextAssigneeRole: ADMIN
         
-    透過這種設計，流程轉移可以透過資料庫配置，而不需要修改程式碼。
+透過這種設計，流程轉移可以透過資料庫配置，而不需要修改程式碼。
 
 ---
 
 ## Admin Workflow Configuration
 
-    管理員可以透過管理介面配置 workflow transition rules。
+管理員可以透過管理介面配置 workflow transition rules。
     
         支援以下操作：
         
@@ -146,13 +146,13 @@ Workflow SaaS Platform 是一個以後端為核心設計的工作流程系統（
         PUT    /admin/workflow/transitions/{id}
         PATCH  /admin/workflow/transitions/{id}/active
     
-    此設計使流程引擎具備高度可配置性。
+此設計使流程引擎具備高度可配置性。
 
 ---
 
 # RBAC Authorization Guard
 
-    流程轉移時會經過多層授權檢查：
+流程轉移時會經過多層授權檢查：
     
         - Tenant Isolation（租戶隔離）
           - Owner Validation（確認流程建立者）
@@ -162,7 +162,7 @@ Workflow SaaS Platform 是一個以後端為核心設計的工作流程系統（
         例如：
             只有 ADMIN 可以批准 PENDING 狀態的流程
     
-    相關邏輯實作於：
+相關邏輯實作於：
 
         WorkflowGuards
 
@@ -187,7 +187,7 @@ Workflow SaaS Platform 是一個以後端為核心設計的工作流程系統（
 
 # Key Engineering Challenges
 
-    設計可配置的 Workflow Engine:
+設計可配置的 Workflow Engine:
     
         本專案的一個核心挑戰，是設計一套 可配置的工作流程系統（Configurable Workflow System），
         使流程的狀態轉移邏輯可以透過設定來定義，而不是寫死在程式碼中。
@@ -255,14 +255,14 @@ Workflow SaaS Platform 是一個以後端為核心設計的工作流程系統（
 
 Detailed design documents:
 
-| Document                                   | Description                                  |
-|--------------------------------------------|----------------------------------------------|
-| [Architecture](docs/ARCHITECTURE.md)       | System architecture and module structure     |
-| [Workflow Engine](docs/WORKFLOW_ENGINE.md) | Workflow transition engine design            |
-| [Database Schema](docs/DATABASE_SCHEMA.md) | Database schema and entity relationships     |
-| [API Design](docs/API_DESIGN.md)           | REST API specification                       |
-| [Security Model](docs/SECURITY_MODEL.md)   | Authentication and RBAC authorization        |
-| [Future Roadmap](docs/FUTURE_ROADMAP.md)   | Future extensibility and governance workflow |
+| Document                                             | Description                                  |
+|------------------------------------------------------|----------------------------------------------|
+| [Architecture](docs/ARCHITECTURE.md)                 | System architecture and module structure     |
+| [Workflow Engine](docs/WORKFLOW_ENGINE.md)           | Workflow transition engine design            |
+| [Database Schema](docs/DATABASE_SCHEMA.md)           | Database schema and entity relationships     |
+| [API Design](docs/API_DESIGN.md)                     | REST API specification                       |
+| [Security Model](docs/SECURITY_MODEL.md)             | Authentication and RBAC authorization        |
+| [Future Roadmap](docs/FUTURE_ROADMAP.md)             | Future extensibility and governance workflow |
 
 ---
 
